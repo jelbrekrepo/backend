@@ -1,11 +1,17 @@
 import express from 'express'
 import bodyParser from 'body-parser'
 import { developerMiddleware } from '../../util/UserUtil'
-import { createPackage, getPackageFromId } from '../../util/CydiaUtil'
+import {
+  createPackage,
+  getPackageFromId,
+  createPackageVersion
+} from '../../util/CydiaUtil'
 import PackageCreateError from '../../errors/PackageCreateError'
 import { Package } from '../../database/entities/Package'
 import PackageNotFoundError from '../../errors/PackageNotFoundError'
 import { Device } from '../../database/entities/Device'
+import { PackageVersion } from '../../database/entities/PackageVersion'
+import NotAuthorizedError from '../../errors/NotAuthorizedError'
 
 const PackageRouter = express.Router()
 
@@ -51,19 +57,31 @@ PackageRouter.route('/:id/versions').get(async (req, res) => {
     versions: pkg.versions.map(version => version.serialize())
   })
 })
-PackageRouter.route('/:id/versions/:version').get(async (req, res) => {
-  let pkg = await getPackageFromId(req.params.id)
-  const version = pkg.versions.find(
-    version =>
-      version.id === req.params.version ||
-      version.version === req.params.version
-  )
-  if (!version) throw new PackageNotFoundError('Package version not found')
-  return res.status(200).json({
-    message: 'OK',
-    version: version
+PackageRouter.route('/:id/versions/:version')
+  .get(async (req, res) => {
+    let pkg = await getPackageFromId(req.params.id)
+    const version = pkg.versions.find(
+      version =>
+        version.id === req.params.version ||
+        version.version === req.params.version
+    )
+    if (!version) throw new PackageNotFoundError('Package version not found')
+    return res.status(200).json({
+      message: 'OK',
+      version
+    })
   })
-})
+  .put(developerMiddleware(), async (req, res) => {
+    let pkg = await getPackageFromId(req.params.id)
+    if (pkg.author.id !== req.user.id) {
+      throw new NotAuthorizedError()
+    }
+    let version = await createPackageVersion(req.ip, pkg, req.params.version)
+    return res.status(200).json({
+      message: 'OK',
+      version
+    })
+  })
 PackageRouter.route('/:id/versions/:version/download').get(async (req, res) => {
   let pkg = await getPackageFromId(req.params.id)
   const version = pkg.versions.find(
