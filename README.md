@@ -19,5 +19,10 @@ Do not test any security vulnerabilities on the production version of Jelbrek.
 
 <sup>1</sup> Amazon S3 and Google Cloud Storage is interchangable, local storage is not supported for scaling reasons
 
-## Running
-It is recommended you use Docker and [docker-compose](https://docs.docker.com/compose/) to run the backend.
+## Deployment
+It is recommended you use Docker and [docker-compose](https://docs.docker.com/compose/) to run the backend.  
+
+This project (jelbrek-backend) is intended to run on repo.*base_domain*.*tld*.  
+The frontend runs on *base_domain*.*tld* or www<i></i>.*base_domain*.*tld* and all code related to it is in a seperate repository. <!-- TODO: Include link to frontend repository -->
+
+<sup>Replace *base_domain* and *tld* with the respective values.</sup>

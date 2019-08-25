@@ -1,6 +1,8 @@
 import { Package } from '../database/entities/Package'
 import { generateId } from '.'
 import { User } from '../database/entities/User'
+import PackageNotFoundError from '../errors/PackageNotFoundError'
+import { PackageVersion } from '../database/entities/PackageVersion'
 
 export function repoInformation() {
   // TODO: grab information from Config in database
@@ -36,8 +38,41 @@ export async function createPackage(
   pkg.section = data.section
   pkg.versions = []
   pkg.depiction = ''
+  pkg.allowedUDIDs = []
   pkg = await pkg.save()
   return pkg
+}
+
+export async function createPackageVersion(
+  ip: string,
+  pkg: Package,
+  version: string
+): Promise<PackageVersion> {
+  let pkgVersion = new PackageVersion()
+  pkgVersion.id = generateId()
+  pkgVersion.package = pkg
+  pkgVersion.creationIP = ip
+  pkgVersion.changes = ''
+  pkgVersion.dependencies = []
+  pkgVersion.tags = []
+  pkgVersion = await pkgVersion.save()
+  return pkgVersion
+}
+
+export async function getPackageFromId(id: string): Promise<Package> {
+  let bundleIdPkg = await Package.findOne({
+    packageId: id
+  })
+  if (!bundleIdPkg) {
+    let realIdPkg = await Package.findOne({
+      id
+    })
+    if (!realIdPkg) {
+      throw new PackageNotFoundError()
+    }
+    return realIdPkg
+  }
+  return bundleIdPkg
 }
 
 export async function createPackages() {

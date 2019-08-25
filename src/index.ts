@@ -1,4 +1,5 @@
 import 'reflect-metadata'
+import 'express-async-errors'
 import app from './web'
 import createDatabase from './database'
 import config from './config'

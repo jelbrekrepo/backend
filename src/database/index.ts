@@ -11,8 +11,8 @@ export default async function() {
     database: Config.database.database,
     synchronize: true,
     logging: false,
-    entities: [__dirname + '/entities/**/*.ts'],
-    migrations: [__dirname + '/migrations/**/*.ts'],
-    subscribers: [__dirname + '/subscribers/**/*.ts']
+    entities: [__dirname + '/entities/**/*.{ts,js}'],
+    migrations: [__dirname + '/migrations/**/*.{ts,js}'],
+    subscribers: [__dirname + '/subscribers/**/*.{ts,js}']
   })
 }

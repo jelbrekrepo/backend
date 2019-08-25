@@ -36,6 +36,12 @@ export class Package extends BaseEntity {
   })
   private: boolean
 
+  @Column('text', {
+    array: true,
+    default: '{}'
+  })
+  allowedUDIDs: string[]
+
   @Column({
     default: 0
   })

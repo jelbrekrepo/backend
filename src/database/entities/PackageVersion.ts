@@ -17,16 +17,21 @@ export class PackageVersion extends BaseEntity {
   dependencies: string[]
 
   @Column()
-  size: number
+  size?: number
 
   @Column()
-  md5sum: string
+  md5sum?: string
 
   @Column()
-  sha1sum: string
+  sha1sum?: string
 
   @Column()
-  sha256sum: string
+  sha256sum?: string
+
+  @Column({
+    default: false
+  })
+  fileUploaded: boolean
 
   @Column()
   changes: string
@@ -40,11 +45,42 @@ export class PackageVersion extends BaseEntity {
   creationIP: string
 
   @Column()
-  minimumVersion: string
+  minimumVersion?: string
 
   @Column()
-  maximumVersion: string
+  maximumVersion?: string
+
+  @Column('text', {
+    array: true,
+    default: '{}'
+  })
+  tags: string[]
 
   @ManyToOne(type => Package, pkg => pkg.versions)
   package: Package
+
+  serialize() {
+    return {
+      id: this.id,
+      version: this.version,
+      dependencies: this.dependencies,
+      size: this.size,
+      md5sum: this.md5sum,
+      sha1sum: this.sha1sum,
+      sha256sum: this.sha256sum,
+      changes: this.changes,
+      downloads: this.downloads,
+      minimumVersion: this.minimumVersion,
+      maximumVersion: this.maximumVersion,
+      package: {
+        id: this.package.id,
+        packageId: this.package.packageId,
+        author: {
+          id: this.package.author.id,
+          username: this.package.author.username,
+          displayName: this.package.author.displayName
+        }
+      }
+    }
+  }
 }
