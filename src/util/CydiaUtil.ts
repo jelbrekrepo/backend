@@ -35,6 +35,7 @@ export async function createPackage(
   pkg.description = data.description
   pkg.section = data.section
   pkg.versions = []
+  pkg.depiction = ''
   pkg = await pkg.save()
   return pkg
 }
