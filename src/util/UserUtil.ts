@@ -147,6 +147,34 @@ export function authMiddleware(fn?: (user: User) => boolean) {
   }
 }
 
+export function userMiddleware() {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      let token: string = ''
+      if (req.query.token) {
+        token = req.query.token
+      }
+      if (req.headers.authorization) {
+        token = req.headers.authorization
+      }
+      if (token === '') {
+        return next()
+      }
+      let user = await verifyToken(token)
+      if (!user) {
+        return next()
+      }
+      req.user = user as User
+      return next()
+    } catch (error) {
+      logger.error('Unexpected error in auth middleware', { error })
+      return res.status(500).json({
+        errors: [error.message]
+      })
+    }
+  }
+}
+
 export function developerMiddleware() {
   return authMiddleware(user => user.developer)
 }

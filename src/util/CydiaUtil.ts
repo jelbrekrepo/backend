@@ -20,6 +20,7 @@ export function repoInformation() {
 
 export interface CreatePackageData {
   id: string
+  name: string
   description: string
   section: string
 }
@@ -34,6 +35,7 @@ export async function createPackage(
   pkg.author = author
   pkg.creationIP = ip
   pkg.packageId = data.id
+  pkg.name = data.name
   pkg.description = data.description
   pkg.section = data.section
   pkg.versions = []

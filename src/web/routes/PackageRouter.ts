@@ -22,6 +22,20 @@ PackageRouter.use(
   })
 )
 
+PackageRouter.route('/').get(async (req, res) => {
+  let packages = await Package.find({
+    where: {
+      approved: true,
+      private: false
+    },
+    relations: ['author', 'versions']
+  })
+  return res.status(200).json({
+    message: 'OK',
+    packages: packages.map(pkg => pkg.serialize())
+  })
+})
+
 PackageRouter.route('/:id')
   .get(async (req, res) => {
     let pkg = await getPackageFromId(req.params.id)
@@ -34,6 +48,9 @@ PackageRouter.route('/:id')
     if (!req.body) {
       throw new PackageCreateError('Body does not exist', [])
     }
+    if (!req.body.name) {
+      throw new PackageCreateError('No package name', 'name')
+    }
     if (!req.body.description) {
       throw new PackageCreateError('No package description', 'description')
     }
@@ -42,6 +59,7 @@ PackageRouter.route('/:id')
     }
     const pkg = await createPackage(req.user, req.ip, {
       id: req.params.id,
+      name: req.body.name,
       description: req.body.description,
       section: req.body.section
     })

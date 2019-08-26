@@ -18,6 +18,9 @@ export class Package extends BaseEntity {
   packageId: string
 
   @Column()
+  name: string
+
+  @Column()
   description: string
 
   @Column()
@@ -60,6 +63,7 @@ export class Package extends BaseEntity {
     return {
       id: this.id,
       packageId: this.packageId,
+      name: this.name,
       description: this.description,
       depiction: this.depiction,
       section: this.section,
