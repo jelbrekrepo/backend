@@ -1,4 +1,5 @@
 # Jelbrek
+[![CircleCI](https://circleci.com/gh/jelbrekrepo/backend/tree/master.svg?style=svg)](https://circleci.com/gh/jelbrekrepo/backend/tree/master)
 ## Notice
 No support will be provided in self-hosting the Jelbrek repo. The source code is only provided for transparency.  
 
