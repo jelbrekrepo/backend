@@ -16,16 +16,24 @@ export class PackageVersion extends BaseEntity {
   })
   dependencies: string[]
 
-  @Column()
+  @Column({
+    nullable: true
+  })
   size?: number
 
-  @Column()
+  @Column({
+    nullable: true
+  })
   md5sum?: string
 
-  @Column()
+  @Column({
+    nullable: true
+  })
   sha1sum?: string
 
-  @Column()
+  @Column({
+    nullable: true
+  })
   sha256sum?: string
 
   @Column({
@@ -44,10 +52,19 @@ export class PackageVersion extends BaseEntity {
   @Column()
   creationIP: string
 
-  @Column()
+  @Column({
+    nullable: true
+  })
+  creationDate?: Date
+
+  @Column({
+    nullable: true
+  })
   minimumVersion?: string
 
-  @Column()
+  @Column({
+    nullable: true
+  })
   maximumVersion?: string
 
   @Column('text', {
@@ -72,6 +89,7 @@ export class PackageVersion extends BaseEntity {
       downloads: this.downloads,
       minimumVersion: this.minimumVersion,
       maximumVersion: this.maximumVersion,
+      creationDate: this.creationDate,
       package: {
         id: this.package.id,
         packageId: this.package.packageId,
@@ -81,6 +99,22 @@ export class PackageVersion extends BaseEntity {
           displayName: this.package.author.displayName
         }
       }
+    }
+  }
+  serializeFromPackage() {
+    return {
+      id: this.id,
+      version: this.version,
+      dependencies: this.dependencies,
+      size: this.size,
+      md5sum: this.md5sum,
+      sha1sum: this.sha1sum,
+      sha256sum: this.sha256sum,
+      changes: this.changes,
+      downloads: this.downloads,
+      minimumVersion: this.minimumVersion,
+      maximumVersion: this.maximumVersion,
+      creationDate: this.creationDate
     }
   }
 }

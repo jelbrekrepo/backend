@@ -41,6 +41,7 @@ export async function createPackage(
   pkg.versions = []
   pkg.depiction = ''
   pkg.allowedUDIDs = []
+  pkg.creationDate = new Date()
   pkg = await pkg.save()
   return pkg
 }
@@ -52,22 +53,30 @@ export async function createPackageVersion(
 ): Promise<PackageVersion> {
   let pkgVersion = new PackageVersion()
   pkgVersion.id = generateId()
+  pkgVersion.version = version
   pkgVersion.package = pkg
   pkgVersion.creationIP = ip
   pkgVersion.changes = ''
   pkgVersion.dependencies = []
   pkgVersion.tags = []
+  pkgVersion.creationDate = new Date()
   pkgVersion = await pkgVersion.save()
   return pkgVersion
 }
 
 export async function getPackageFromId(id: string): Promise<Package> {
   let bundleIdPkg = await Package.findOne({
-    packageId: id
+    where: {
+      packageId: id
+    },
+    relations: ['author', 'versions']
   })
   if (!bundleIdPkg) {
     let realIdPkg = await Package.findOne({
-      id
+      where: {
+        id
+      },
+      relations: ['author', 'versions']
     })
     if (!realIdPkg) {
       throw new PackageNotFoundError()

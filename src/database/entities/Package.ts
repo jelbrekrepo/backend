@@ -32,6 +32,11 @@ export class Package extends BaseEntity {
   @Column({
     default: false
   })
+  featured: boolean
+
+  @Column({
+    default: false
+  })
   approved: boolean
 
   @Column({
@@ -53,6 +58,16 @@ export class Package extends BaseEntity {
   @Column()
   creationIP: string
 
+  @Column({
+    nullable: true
+  })
+  creationDate?: Date
+
+  @Column({
+    nullable: true
+  })
+  latestVersionId: string
+
   @ManyToOne(type => User, user => user.packages)
   author: User
 
@@ -70,12 +85,13 @@ export class Package extends BaseEntity {
       approved: this.approved,
       private: this.private,
       downloads: this.downloads,
+      creationDate: this.creationDate,
       author: {
         id: this.author.id,
         username: this.author.username,
         displayName: this.author.displayName
       },
-      versions: this.versions
+      versions: this.versions.map(version => version.serializeFromPackage())
     }
   }
 }

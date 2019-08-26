@@ -10,9 +10,7 @@ import PackageCreateError from '../../errors/PackageCreateError'
 import { Package } from '../../database/entities/Package'
 import PackageNotFoundError from '../../errors/PackageNotFoundError'
 import { Device } from '../../database/entities/Device'
-import { PackageVersion } from '../../database/entities/PackageVersion'
 import NotAuthorizedError from '../../errors/NotAuthorizedError'
-
 const PackageRouter = express.Router()
 
 PackageRouter.use(bodyParser.json())
@@ -35,13 +33,35 @@ PackageRouter.route('/').get(async (req, res) => {
     packages: packages.map(pkg => pkg.serialize())
   })
 })
+PackageRouter.route('/featured').get(async (req, res) => {
+  let packages = await Package.find({
+    where: {
+      approved: true,
+      private: false,
+      featured: true
+    },
+    relations: ['author', 'versions']
+  })
+  return res.status(200).json({
+    message: 'OK',
+    packages: packages.map(pkg => pkg.serialize())
+  })
+})
 
 PackageRouter.route('/:id')
   .get(async (req, res) => {
     let pkg = await getPackageFromId(req.params.id)
+    let serialized = pkg.serialize() as { [x: string]: any }
+    if (pkg.latestVersionId) {
+      serialized.latestVersion = pkg.versions
+        .find(
+          v => v.id === pkg.latestVersionId || v.version === pkg.latestVersionId
+        )!
+        .serializeFromPackage()
+    }
     return res.status(200).json({
       message: 'OK',
-      package: pkg.serialize()
+      package: serialized
     })
   })
   .put(developerMiddleware(), async (req, res) => {
@@ -65,6 +85,29 @@ PackageRouter.route('/:id')
     })
     return res.status(200).json({
       message: 'Successfully created package',
+      package: pkg.serialize()
+    })
+  })
+  .patch(developerMiddleware(), async (req, res) => {
+    let pkg = await getPackageFromId(req.params.id)
+    if (pkg.author.id !== req.user.id) {
+      throw new NotAuthorizedError()
+    }
+    if (req.body.depiction) {
+      pkg.depiction = req.body.depiction
+    }
+    if (req.body.latestVersion) {
+      pkg.latestVersionId = req.body.latestVersion
+    }
+    if (req.body.seciton) {
+      pkg.section = req.body.section
+    }
+    if (typeof req.body.private === 'boolean') {
+      pkg.private = req.body.private
+    }
+    await pkg.save()
+    return res.status(200).json({
+      message: 'OK',
       package: pkg.serialize()
     })
   })
@@ -94,12 +137,74 @@ PackageRouter.route('/:id/versions/:version')
     if (pkg.author.id !== req.user.id) {
       throw new NotAuthorizedError()
     }
+    let foundVersion = pkg.versions.find(
+      version => version.version === req.params.version
+    )
+    if (foundVersion) {
+      throw new Error('Version already exists on package')
+    }
     let version = await createPackageVersion(req.ip, pkg, req.params.version)
     return res.status(200).json({
       message: 'OK',
-      version
+      version: version.serialize()
     })
   })
+  .patch(developerMiddleware(), async (req, res) => {
+    let pkg = await getPackageFromId(req.params.id)
+    if (pkg.author.id !== req.user.id) {
+      throw new NotAuthorizedError()
+    }
+    let version = pkg.versions.find(
+      version =>
+        version.id === req.params.version ||
+        version.version === req.params.version
+    )
+    if (!version) {
+      throw new PackageNotFoundError('Package version not found')
+    }
+    if (req.body.tags && Array.isArray(req.body.tags)) {
+      version.tags = req.body.tags
+    }
+    if (req.body.dependencies && Array.isArray(req.body.dependencies)) {
+      version.dependencies = req.body.dependencies
+    }
+    if (req.body.changes) {
+      version.changes = req.body.changes
+    }
+    if (req.body.minimumVersion) {
+      version.minimumVersion = req.body.minimumVersion
+    }
+    if (req.body.maximumVersion) {
+      version.maximumVersion = req.body.maximumVersion
+    }
+    await version.save()
+    return res.status(200).json({
+      message: 'OK',
+      version: version.serialize()
+    })
+  })
+
+PackageRouter.route('/:id/versions/:version/upload').post(
+  developerMiddleware(),
+  async (req, res) => {
+    let pkg = await getPackageFromId(req.params.id)
+    if (pkg.author.id !== req.user.id) {
+      throw new NotAuthorizedError()
+    }
+    let version = pkg.versions.find(
+      version =>
+        version.id === req.params.version ||
+        version.version === req.params.version
+    )
+    if (!version) {
+      throw new PackageNotFoundError('Package version not found')
+    }
+    // TODO: implement uploading of packages
+    return res.json({
+      message: 'OK'
+    })
+  }
+)
 PackageRouter.route('/:id/versions/:version/download').get(async (req, res) => {
   let pkg = await getPackageFromId(req.params.id)
   const version = pkg.versions.find(
