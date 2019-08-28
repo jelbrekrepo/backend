@@ -24,6 +24,11 @@ export class PackageVersion extends BaseEntity {
   @Column({
     nullable: true
   })
+  installedSize?: number
+
+  @Column({
+    nullable: true
+  })
   md5sum?: string
 
   @Column({
@@ -82,6 +87,7 @@ export class PackageVersion extends BaseEntity {
       version: this.version,
       dependencies: this.dependencies,
       size: this.size,
+      installedSize: this.installedSize,
       md5sum: this.md5sum,
       sha1sum: this.sha1sum,
       sha256sum: this.sha256sum,
@@ -107,6 +113,7 @@ export class PackageVersion extends BaseEntity {
       version: this.version,
       dependencies: this.dependencies,
       size: this.size,
+      installedSize: this.installedSize,
       md5sum: this.md5sum,
       sha1sum: this.sha1sum,
       sha256sum: this.sha256sum,

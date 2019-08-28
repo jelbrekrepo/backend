@@ -11,7 +11,13 @@ import { Package } from '../../database/entities/Package'
 import PackageNotFoundError from '../../errors/PackageNotFoundError'
 import { Device } from '../../database/entities/Device'
 import NotAuthorizedError from '../../errors/NotAuthorizedError'
+import { getPackageUrl, uploadPackage } from '../../util/StorageUtil'
+import multer from 'multer'
+import crypto from 'crypto'
+import { getDebPackage } from '../../util/DebUtil'
 const PackageRouter = express.Router()
+
+const upload = multer()
 
 PackageRouter.use(bodyParser.json())
 PackageRouter.use(
@@ -186,6 +192,7 @@ PackageRouter.route('/:id/versions/:version')
 
 PackageRouter.route('/:id/versions/:version/upload').post(
   developerMiddleware(),
+  upload.single('file'),
   async (req, res) => {
     let pkg = await getPackageFromId(req.params.id)
     if (pkg.author.id !== req.user.id) {
@@ -199,13 +206,35 @@ PackageRouter.route('/:id/versions/:version/upload').post(
     if (!version) {
       throw new PackageNotFoundError('Package version not found')
     }
+    if (!req.file || !req.file.buffer) {
+      throw new Error('file not uploaded')
+    }
+    let md5 = crypto.createHash('md5')
+    let sha1 = crypto.createHash('sha1')
+    let sha256 = crypto.createHash('sha256')
+
+    let debPkg = await getDebPackage(req.file.buffer)
+    version.size = req.file.buffer.byteLength
+    version.installedSize = debPkg.installedSize
+    version.dependencies = debPkg.dependencies
+    version.md5sum = md5.update(req.file.buffer).digest('hex')
+    version.sha1sum = sha1.update(req.file.buffer).digest('hex')
+    version.sha256sum = sha256.update(req.file.buffer).digest('hex')
+
+    await uploadPackage(pkg, version, req.file.buffer)
+    await version.save()
     // TODO: implement uploading of packages
     return res.json({
-      message: 'OK'
+      message: 'OK',
+      package: pkg.serialize(),
+      version: version.serializeFromPackage()
     })
   }
 )
-PackageRouter.route('/:id/versions/:version/download').get(async (req, res) => {
+PackageRouter.route([
+  '/:id/versions/:version/download',
+  '/:id/versions/:version/download.deb'
+]).get(async (req, res) => {
   let pkg = await getPackageFromId(req.params.id)
   const version = pkg.versions.find(
     version =>
@@ -261,8 +290,8 @@ PackageRouter.route('/:id/versions/:version/download').get(async (req, res) => {
     }
   }
 
-  // TODO: Implement downloading of package versions
-  return res.send('download')
+  let packageUrl = await getPackageUrl(pkg, version)
+  return res.redirect(packageUrl)
 })
 
 export default PackageRouter

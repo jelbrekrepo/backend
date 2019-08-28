@@ -18,5 +18,15 @@ export default {
     datacenter: parseInt(process.env.SNOWFLAKE_DATACENTER || '0', 10),
     worker: parseInt(process.env.SNOWFLAKE_WORKER || '0', 10)
   },
-  secret: process.env.SECRET!
+  storage: {
+    type: process.env.STORAGE_TYPE === 's3' ? 's3' : 'gcs',
+    gcs: {
+      bucket: process.env.STORAGE_GCS_BUCKET,
+      project: process.env.STORAGE_GCS_PROJECT,
+      email: process.env.STORAGE_GCS_EMAIL,
+      privateKey: process.env.STORAGE_GCS_PRIVATEKEY
+    }
+  },
+  secret: process.env.SECRET!,
+  frontendURL: process.env.FRONTEND_URL!
 }
