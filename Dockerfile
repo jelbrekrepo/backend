@@ -1,10 +1,10 @@
 FROM node:12-alpine
+MAINTAINER seth@sethstephens.me
 WORKDIR /usr/src/app
-COPY package.json ./
-COPY yarn.lock ./
-COPY LICENSE ./
-COPY README.md ./
-COPY dist ./
+
+COPY . .
 RUN yarn install --production
+
+EXPOSE 3000
 
 CMD ["node", "dist/index.js"]
