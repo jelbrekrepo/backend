@@ -13,9 +13,9 @@ if (config.server.trustProxy !== false) {
   app.set('trust proxy', config.server.trustProxy) // Respects X-Forwarded-For
 }
 
-if (process.env.NODE_ENV !== 'production') {
-  app.use(morgan('combined'))
-}
+//if (process.env.NODE_ENV !== 'production') {
+app.use(morgan('combined'))
+//}
 
 app.use('/', CydiaRouter)
 app.use('/package', PackageRouter)
