@@ -21,6 +21,10 @@ app.use('/', CydiaRouter)
 app.use('/package', PackageRouter)
 app.use('/auth', AuthRouter)
 
+app.get('/health', (req, res) => {
+  return res.status(200).send('healthy')
+})
+
 app.use(
   async (error: Error, req: Request, res: Response, next: NextFunction) => {
     logger.error('Unhandled error in express app', { error })
