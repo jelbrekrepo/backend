@@ -12,6 +12,9 @@ const app = express()
 
 if (config.server.trustProxy !== false) {
   app.set('trust proxy', config.server.trustProxy) // Respects X-Forwarded-For
+  if (config.server.trustProxyHops) {
+    app.set('trust proxy', config.server.trustProxyHops)
+  }
 }
 
 //if (process.env.NODE_ENV !== 'production') {
