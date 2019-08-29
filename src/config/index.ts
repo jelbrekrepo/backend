@@ -3,9 +3,7 @@ config()
 export default {
   server: {
     port: parseInt(process.env.PORT || '3000', 10),
-    trustProxy: !process.env.TRUST_PROXY
-      ? false
-      : process.env.TRUST_PROXY.split(/[,|/] ?/i)
+    trustProxy: !process.env.TRUST_PROXY ? false : process.env.TRUST_PROXY
   },
   database: {
     host: process.env.DB_HOST,
