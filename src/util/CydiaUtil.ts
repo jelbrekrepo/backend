@@ -6,6 +6,7 @@ import { PackageVersion } from '../database/entities/PackageVersion'
 import zlib from 'zlib'
 import { Bzip2 } from 'compressjs'
 import { stripIndents } from 'common-tags'
+import config from '../config'
 
 const bzip2 = (input: Buffer) => {
   let buf = Buffer.from(Bzip2.compressFile(input))
@@ -132,7 +133,7 @@ export async function createPackages(): Promise<Buffer> {
           buf += `SHA256: ${version.sha256sum}\n`
           buf += `SHA1: ${version.sha1sum}\n`
           buf += `MD5sum: ${version.md5sum}\n`
-          buf += `Depiction: https://jelbrek.com/package/${pkg.packageId}\n`
+          buf += `Depiction: ${config.frontendURL}/package/${pkg.packageId}\n`
           if (version.size !== null) {
             buf += `Size: ${version.size}\n`
           }

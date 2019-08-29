@@ -27,6 +27,12 @@ export default {
       privateKey: process.env.STORAGE_GCS_PRIVATEKEY
     }
   },
+  sendgrid: {
+    from: process.env.SENDGRID_FROM,
+    key: process.env.SENDGRID_API_KEY,
+    enabled: process.env.SENDGRID_ENABLED === '1'
+  },
   secret: process.env.SECRET!,
-  frontendURL: process.env.FRONTEND_URL!
+  frontendURL: process.env.FRONTEND_URL!,
+  baseURL: process.env.BASE_URL!
 }

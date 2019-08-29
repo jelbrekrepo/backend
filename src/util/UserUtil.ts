@@ -6,6 +6,9 @@ import jwt from 'jsonwebtoken'
 import config from '../config'
 import { NextFunction, Request, Response } from 'express'
 import logger from '../log'
+import sgMail from '@sendgrid/mail'
+import { stripIndents } from 'common-tags'
+
 const EMAIL_REGEX = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
 
 export async function userForEmail(email: string): Promise<User | boolean> {
@@ -33,14 +36,19 @@ export async function register(
 ): Promise<User> {
   if (username.length < 3) {
     throw new SignUpError(
-      'Username must be longer than 3 characters',
+      'Username must be longer than 2 characters',
+      'username'
+    )
+  } else if (username.length > 20) {
+    throw new SignUpError(
+      'Username must be shorter than 21 characters',
       'username'
     )
   }
   if (!email.match(EMAIL_REGEX)) {
     throw new SignUpError('Email is invalid', 'email')
   }
-  if (password.length < 4) {
+  if (password.length < 5) {
     throw new SignUpError(
       'Password must be longer than 4 characters',
       'password'
@@ -70,7 +78,20 @@ export async function register(
   user = await user.save()
 
   // Send email with verification link
-
+  if (config.sendgrid.enabled) {
+    sgMail.setApiKey(config.sendgrid.key!)
+    let verifyUrl = `${config.baseURL}/auth/verify?token=${user.emailVerificationToken}`
+    await sgMail.send({
+      to: user.email,
+      from: config.sendgrid.from!,
+      subject: 'Jelbrek Repo: verify your email',
+      html: stripIndents`Hi, <strong>${user.username}</strong>,
+      <br/>Someone with your email signed up at <a href="${config.frontendURL}">Jelbrek</a> (hopefully you!)
+      <br/>If it wasn't you, disregard this email.
+      <br/>If it was you, click <a href="${verifyUrl}">to verify your email</a>.
+      <br/>Alternatively, copy and paste this into your address bar: ${verifyUrl}`
+    })
+  }
   return user
 }
 
