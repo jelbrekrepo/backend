@@ -44,6 +44,20 @@ PackageRouter.route('/').get(async (req, res) => {
     packages: packages.map(pkg => pkg.serialize())
   })
 })
+PackageRouter.route('/mine').get(developerMiddleware(), async (req, res) => {
+  let packages = await Package.find({
+    where: {
+      approved: true,
+      private: false
+    },
+    relations: ['author', 'versions']
+  })
+  packages = packages.filter(pkg => pkg.author.id === req.user.id)
+  return res.status(200).json({
+    message: 'OK',
+    packages: packages.map(pkg => pkg.serialize())
+  })
+})
 PackageRouter.route('/featured').get(async (req, res) => {
   let packages = await Package.find({
     where: {
@@ -110,8 +124,11 @@ PackageRouter.route('/:id')
     if (req.body.latestVersion) {
       pkg.latestVersionId = req.body.latestVersion
     }
-    if (req.body.seciton) {
+    if (req.body.section) {
       pkg.section = req.body.section
+    }
+    if (req.body.description) {
+      pkg.description = req.body.description
     }
     if (typeof req.body.private === 'boolean') {
       pkg.private = req.body.private
