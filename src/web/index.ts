@@ -7,6 +7,7 @@ import logger from '../log'
 import config from '../config'
 import morgan from 'morgan'
 import cors from 'cors'
+import UsersRouter from './routes/UsersRouter'
 
 const app = express()
 
@@ -23,13 +24,15 @@ app.use(morgan('combined'))
 
 app.use(
   cors({
-    origin: config.frontendURL
+    origin: config.frontendURL,
+    credentials: true
   })
 )
 
 app.use('/', CydiaRouter)
 app.use('/package', PackageRouter)
 app.use('/auth', AuthRouter)
+app.use('/users', UsersRouter)
 
 app.get('/health', (req, res) => {
   return res.status(200).send('healthy')

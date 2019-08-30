@@ -36,6 +36,27 @@ export async function uploadPackage(
     stream.end(data)
   })
 }
+
+export async function uploadIcon(pkg: Package, data: Buffer): Promise<File> {
+  return new Promise((resolve, reject) => {
+    let file = bucket.file(`/${pkg.id}/icon.png`)
+    let stream = file.createWriteStream({
+      metadata: {
+        contentType: 'image/png'
+      },
+      resumable: false
+    })
+    stream.on('error', err => {
+      reject(err)
+    })
+    stream.on('finish', () => {
+      file.makePublic()
+      resolve(file)
+    })
+    stream.end(data)
+  })
+}
+
 export async function upload(
   pkg: Package,
   version: PackageVersion,

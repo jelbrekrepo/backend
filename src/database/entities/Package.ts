@@ -68,6 +68,11 @@ export class Package extends BaseEntity {
   })
   latestVersionId: string
 
+  @Column({
+    nullable: true
+  })
+  icon: string
+
   @ManyToOne(type => User, user => user.packages)
   author: User
 
@@ -86,6 +91,7 @@ export class Package extends BaseEntity {
       private: this.private,
       downloads: this.downloads,
       creationDate: this.creationDate,
+      icon: this.icon,
       author: {
         id: this.author.id,
         username: this.author.username,

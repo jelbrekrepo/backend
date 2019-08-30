@@ -11,10 +11,15 @@ import { Package } from '../../database/entities/Package'
 import PackageNotFoundError from '../../errors/PackageNotFoundError'
 import { Device } from '../../database/entities/Device'
 import NotAuthorizedError from '../../errors/NotAuthorizedError'
-import { getPackageUrl, uploadPackage } from '../../util/StorageUtil'
+import {
+  getPackageUrl,
+  uploadPackage,
+  uploadIcon
+} from '../../util/StorageUtil'
 import multer from 'multer'
 import crypto from 'crypto'
 import { getDebPackage } from '../../util/DebUtil'
+import config from '../../config'
 const PackageRouter = express.Router()
 
 const upload = multer()
@@ -124,6 +129,37 @@ PackageRouter.route('/:id/versions').get(async (req, res) => {
     versions: pkg.versions.map(version => version.serialize())
   })
 })
+
+PackageRouter.route(['/:id/icon', '/:id/icon.png'])
+  .get(async (req, res) => {
+    let defaultImage = `https://${config.storage.gcs.bucket}.storage.googleapis.com/unknown.png`
+    try {
+      let pkg = await getPackageFromId(req.params.id)
+      if (!pkg.icon) {
+        return res.redirect(defaultImage)
+      }
+      return res.redirect(pkg.icon)
+    } catch (err) {
+      return res.redirect(defaultImage)
+    }
+  })
+  .post(developerMiddleware(), upload.single('file'), async (req, res) => {
+    let pkg = await getPackageFromId(req.params.id)
+    if (pkg.author.id !== req.user.id) {
+      throw new NotAuthorizedError()
+    }
+    if (!req.file || !req.file.buffer) {
+      throw new Error('file not uploaded')
+    }
+    await uploadIcon(pkg, req.file.buffer)
+    pkg.icon = `https://${config.storage.gcs.bucket}.storage.googleapis.com/${pkg.id}/icon.png`
+    await pkg.save()
+    return res.status(200).json({
+      message: 'ok',
+      package: pkg.serialize()
+    })
+  })
+
 PackageRouter.route('/:id/versions/:version')
   .get(async (req, res) => {
     let pkg = await getPackageFromId(req.params.id)

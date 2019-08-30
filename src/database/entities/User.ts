@@ -61,6 +61,18 @@ export class User extends BaseEntity {
 
   @OneToMany(type => Package, pkg => pkg.author)
   packages: Package[]
+
+  serialize() {
+    return {
+      id: this.id,
+      username: this.username,
+      email: this.email,
+      displayName: this.displayName,
+      developer: this.developer,
+      moderator: this.moderator,
+      admin: this.admin
+    }
+  }
 }
 
 declare global {

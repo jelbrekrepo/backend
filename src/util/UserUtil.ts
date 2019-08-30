@@ -80,7 +80,7 @@ export async function register(
   // Send email with verification link
   if (config.sendgrid.enabled) {
     sgMail.setApiKey(config.sendgrid.key!)
-    let verifyUrl = `${config.baseURL}/auth/verify?token=${user.emailVerificationToken}`
+    let verifyUrl = `${config.frontendURL}/register/verify?token=${user.emailVerificationToken}`
     await sgMail.send({
       to: user.email,
       from: config.sendgrid.from!,
